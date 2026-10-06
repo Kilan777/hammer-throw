@@ -1,0 +1,24 @@
+{
+  "setup": {
+    "cameraDistance": 10.0,
+    "hfovDeg": 65.0,
+    "hand": "right",
+    "releaseRadius": 1.6
+  },
+  "truth": {
+    "speed": 26.0,
+    "angle": 40.0,
+    "height": 1.65,
+    "psi": 20.0,
+    "lateral": 1.6,
+    "releaseT": 1.62,
+    "rangeDrag": 67.84698315547146,
+    "rangeVac": 69.77488504788072,
+    "camHeight": 2.533339841917205,
+    "cd": 0.6,
+    "mass": 7.26,
+    "fps": 30,
+    "groundY": 620,
+    "releaseDepth": 8.514096319331308
+  }
+}

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hammer Throw Analyzer</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='17' cy='7' r='4' fill='%23ff4d6d'/%3E%3Cpath d='M4 20 L14.5 9.5' stroke='%23ff4d6d' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <script type="module" crossorigin src="./assets/index-CblQb-Aq.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-wbxSgJJE.css">
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="17" cy="7" r="4" fill="currentColor"/><path d="M4 20 L14.5 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <h1>Hammer Throw Analyzer</h1>
+      </div>
+      <div class="top-actions">
+        <button id="tour" class="btn ghost">Tutorial</button>
+        <div class="menu-wrap">
+          <button id="demo" class="btn ghost" aria-haspopup="true" aria-expanded="false">Demos ▾</button>
+          <div id="demo-menu" class="menu" role="menu" hidden></div>
+        </div>
+        <label class="btn">Open video<input id="file" type="file" accept="video/*" hidden /></label>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="stage">
+        <div id="drop" class="drop">
+          <div>
+            <p class="drop-title">Drop a throw video here</p>
+            <p class="muted">Side-on view, camera on a tripod, roughly perpendicular to the throw direction. Include the release and the first ~0.5 s of flight.</p>
+            <div class="row center">
+              <label class="btn">Choose video<input id="file2" type="file" accept="video/*" hidden /></label>
+              <button id="demo2" class="btn ghost">Open the demo</button>
+            </div>
+            <div class="tour-cta">
+              <button id="tour2" class="btn primary">New here? Take the 1-minute tour</button>
+              <p class="muted small">It walks you through a pre-marked demo throw, so no setup is needed.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="viewer" class="viewer" hidden>
+          <div class="canvas-wrap">
+            <canvas id="canvas"></canvas>
+            <div id="tool-hint" class="tool-hint" hidden></div>
+            <div id="busy" class="busy" hidden>
+              <div class="busy-card">
+                <div id="busy-text">Analyzing…</div>
+                <div class="bar"><div id="busy-bar"></div></div>
+                <button id="cancel" class="btn ghost small">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="credit" class="credit muted small" hidden></div>
+          <div class="transport">
+            <button id="play" class="btn icon play" title="Play / pause (Space)" aria-label="Play">▶</button>
+            <select id="speed" class="speed" title="Playback speed" aria-label="Playback speed">
+              <option value="0.1">0.1×</option>
+              <option value="0.25" selected>0.25×</option>
+              <option value="0.5">0.5×</option>
+              <option value="1">1×</option>
+            </select>
+            <button id="prev" class="btn icon" title="Previous frame (←)">⏮</button>
+            <input id="scrub" type="range" min="0" max="0" value="0" step="1" />
+            <button id="next" class="btn icon" title="Next frame (→)">⏭</button>
+            <label class="chk" title="Play the whole video instead of just the analyzed part"><input id="play-full" type="checkbox" /> Full video</label>
+            <span id="frame-label" class="mono muted"></span>
+          </div>
+          <div id="markers" class="markers"></div>
+
+          <div class="tools">
+            <div class="seg" role="group" aria-label="Click tool">
+              <button data-tool="none" class="on" title="Esc">View</button>
+              <button data-tool="ball" title="B — click the ball in this frame">Mark ball</button>
+              <button data-tool="ground" title="G — click two points on the ground">Ground line</button>
+              <button data-tool="edge" title="Click the front edge of the circle">Circle edge</button>
+              <button data-tool="calib" title="Calibrate the camera from the throwing circle + horizon (5 clicks)">Calibrate</button>
+            </div>
+            <button id="set-release" class="btn small" title="R">Release = this frame</button>
+            <button id="del-point" class="btn small ghost" title="Delete">Remove ball point</button>
+            <button id="retrack" class="btn small ghost">Re-run auto track</button>
+            <button id="save-session" class="btn small ghost" title="Download this throw's markings + analysis as a .json file">Save markings</button>
+            <label class="btn small ghost" title="Load a .json saved with “Save markings” (open the same video first)">Load markings<input id="load-session" type="file" accept=".json,application/json" hidden /></label>
+            <span class="spacer"></span>
+            <label class="chk"><input id="show-skel" type="checkbox" checked /> Skeleton</label>
+            <label class="chk"><input id="show-arc" type="checkbox" checked /> Arc</label>
+            <label class="chk"><input id="show-cands" type="checkbox" /> Motion blobs</label>
+            <label class="chk"><input id="show-mask" type="checkbox" /> Motion mask</label>
+          </div>
+        </div>
+
+        <div id="strip-card" class="card" hidden>
+          <div class="card-h"><h2>Frames used</h2><span class="muted small">Ball positions that fed the fit · click to jump</span></div>
+          <div id="strip" class="strip"></div>
+        </div>
+
+        <div id="chart-card" class="card" hidden>
+          <div class="card-h"><h2>Predicted flight</h2><span class="muted small" id="chart-note"></span></div>
+          <div id="chart"></div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="card">
+          <div class="card-h"><h2>Setup</h2></div>
+          <div class="form">
+            <label>Camera → thrower distance
+              <span class="unit"><input id="cam-dist" type="number" min="1" max="100" step="0.1" value="10" /> m</span>
+            </label>
+            <label>Camera field of view
+              <select id="fov-preset">
+                <option value="65">Phone main lens (1×) · ~65°</option>
+                <option value="100">Phone ultra-wide (0.5×) · ~100°</option>
+                <option value="40">Phone 2× · ~40°</option>
+                <option value="28">Phone 3× · ~28°</option>
+                <option value="custom">Custom…</option>
+              </select>
+            </label>
+            <label id="fov-custom-row" hidden>Horizontal FOV
+              <span class="unit"><input id="fov" type="number" min="5" max="150" step="0.5" value="65" /> °</span>
+            </label>
+            <div id="calib-status" class="calib-status" hidden>
+              <span id="calib-text"></span>
+              <button id="calib-clear" class="btn tiny ghost">clear</button>
+            </div>
+            <label>Thrower
+              <select id="hand">
+                <option value="right">Right-handed (turns counter-clockwise)</option>
+                <option value="left">Left-handed (turns clockwise)</option>
+                <option value="unknown">Not sure</option>
+              </select>
+            </label>
+            <label>Video speed
+              <select id="slowmo">
+                <option value="1">Real time</option>
+                <option value="0.5">Slow-mo 2× (60 fps shown at 30)</option>
+                <option value="0.25">Slow-mo 4× (120 fps)</option>
+                <option value="0.125">Slow-mo 8× (240 fps)</option>
+                <option value="0.0625">Slow-mo 16× (480 fps)</option>
+                <option value="custom">Custom % of real speed…</option>
+              </select>
+            </label>
+            <label id="slowmo-custom-row" hidden>Clip plays at
+              <span class="unit"><input id="slowmo-pct" type="number" min="0.5" max="100" step="0.5" value="100" /> % of real speed</span>
+            </label>
+            <label>Scale from
+              <select id="scale-mode">
+                <option value="camera">Camera distance + FOV</option>
+                <option value="height">Thrower's height</option>
+                <option value="gravity">Gravity only (ball's fall) — best with slow-mo</option>
+              </select>
+            </label>
+            <label id="height-row" hidden>Thrower's height
+              <span class="unit"><input id="thrower-height" type="number" min="1.2" max="2.3" step="0.01" value="1.80" /> m</span>
+            </label>
+            <label>Hammer
+              <select id="hammer"></select>
+            </label>
+            <details>
+              <summary>Advanced</summary>
+              <label>Frame rate
+                <span class="unit"><input id="fps" type="number" min="10" max="1000" step="0.01" value="30" /> fps</span>
+              </label>
+              <label>Analyze from
+                <span class="unit"><input id="t-start" type="number" min="0" step="0.01" value="0" /> s <button id="t-start-here" class="btn tiny ghost">here</button></span>
+              </label>
+              <label>Analyze to
+                <span class="unit"><input id="t-end" type="number" min="0" step="0.01" value="0" /> s <button id="t-end-here" class="btn tiny ghost">here</button></span>
+              </label>
+              <label>Camera distance accuracy
+                <span class="unit">± <input id="dist-sigma" type="number" min="0.05" max="5" step="0.05" value="0.3" /> m</span>
+              </label>
+              <label>Release radius (ball → thrower axis, top view)
+                <span class="unit"><input id="rel-radius" type="number" min="0" max="3" step="0.1" value="1.6" /> m</span>
+              </label>
+              <label>Drag coefficient (ball + wire)
+                <input id="cd" type="number" min="0" max="2" step="0.05" value="0.6" />
+              </label>
+              <label>Air density
+                <span class="unit"><input id="rho" type="number" min="0.8" max="1.4" step="0.01" value="1.2" /> kg/m³</span>
+              </label>
+              <label>Motion sensitivity
+                <input id="sens" type="range" min="4" max="40" value="12" />
+              </label>
+            </details>
+            <button id="analyze" class="btn primary wide" disabled>Analyze throw</button>
+          </div>
+        </div>
+
+        <div id="result-card" class="card result" hidden>
+          <div class="headline">
+            <div class="big"><span id="r-dist">–</span><small> m</small></div>
+            <div class="muted" id="r-dist-sub">predicted distance</div>
+            <div id="r-ref" class="ref" hidden></div>
+          </div>
+          <dl class="stats">
+            <div><dt>Release speed</dt><dd id="r-speed">–</dd></div>
+            <div><dt>Release angle</dt><dd id="r-angle">–</dd></div>
+            <div><dt>Release height</dt><dd id="r-height">–</dd></div>
+            <div><dt>No-drag distance</dt><dd id="r-vac">–</dd></div>
+            <div><dt>Flight time</dt><dd id="r-time">–</dd></div>
+            <div><dt>Peak height</dt><dd id="r-apex">–</dd></div>
+          </dl>
+          <div id="r-hint" class="hint"></div>
+          <ul id="r-warn" class="warn"></ul>
+        </div>
+
+        <div id="geo-card" class="card" hidden>
+          <div class="card-h"><h2>Throw geometry</h2><span class="muted small">top view · drag ● to set</span></div>
+          <div id="topview"></div>
+          <div class="geo-row">
+            <div class="seg" id="psi-mode" role="group" aria-label="Throw direction">
+              <button data-psi="auto" class="on">Auto from arc</button>
+              <button data-psi="manual">Manual</button>
+            </div>
+            <span class="unit"><input id="psi" type="number" step="0.5" min="-60" max="60" value="0" /> °</span>
+          </div>
+          <dl id="geo-stats" class="stats"></dl>
+        </div>
+
+        <div id="body-card" class="card" hidden>
+          <div class="card-h"><h2>Body at release</h2><button id="goto-release" class="btn tiny ghost">show frame</button></div>
+          <dl id="body" class="stats"></dl>
+        </div>
+
+        <div id="scale-card" class="card" hidden>
+          <div class="card-h"><h2>Measurement check</h2></div>
+          <dl id="scale" class="stats one"></dl>
+        </div>
+
+        <p class="muted small foot">Keys: ←/→ frame · B mark ball · G ground · R release · Del remove point · Esc view</p>
+      </aside>
+    </main>
+  </body>
+</html>
