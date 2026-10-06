@@ -1,0 +1,9 @@
+node_modules
+dist
+# Fetched by `npm install` (scripts/setup-assets.mjs)
+public/mediapipe
+public/models
+# Local test outputs
+test/__pycache__
+cands-*.json
+*.log

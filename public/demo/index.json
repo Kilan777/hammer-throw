@@ -1,0 +1,30 @@
+[
+  {
+    "id": "milwaukee-2014",
+    "title": "Real throw \u00b7 Highland Games hammer, slow motion",
+    "kind": "real",
+    "video": "demo/milwaukee-2014.mp4",
+    "note": "Milwaukee Highland Games 2014, filmed side-on in ~4\u00d7 slow motion. The ball is auto-tracked and the camera tilt is compensated. No official mark is known.",
+    "credit": {
+      "text": "Video: \u201cHammer Throw, slow motion\u201d by Michaela Pereckas, CC BY 3.0 (YouTube)",
+      "url": "https://www.youtube.com/watch?v=I_QGia0lsKA"
+    },
+    "session": "demo/milwaukee-2014.session.json"
+  },
+  {
+    "id": "throw",
+    "title": "Synthetic throw \u00b7 20\u00b0 off square-on",
+    "kind": "synthetic",
+    "video": "demo/throw.webm",
+    "note": "Rendered test scene with a known answer: 26.0 m/s at 40\u00b0 from 1.65 m \u2192 67.85 m",
+    "session": "demo/throw.session.json"
+  },
+  {
+    "id": "square",
+    "title": "Synthetic throw \u00b7 square-on",
+    "kind": "synthetic",
+    "video": "demo/square.webm",
+    "note": "Same throw filmed exactly side-on",
+    "session": "demo/square.session.json"
+  }
+]
